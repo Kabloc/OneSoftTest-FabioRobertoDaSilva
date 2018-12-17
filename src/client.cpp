@@ -25,8 +25,8 @@ int main(int argc, char* argv[])
 
 		while (1) {
 			size_t reply_length = boost::asio::read_until(s,
-				boost::asio::dynamic_buffer(reply), "\0");
-			all << reply << std::endl;
+				boost::asio::dynamic_buffer(reply), "\r\n");
+			std::cout << reply << std::endl;
 			reply.clear();
 		}
 	}

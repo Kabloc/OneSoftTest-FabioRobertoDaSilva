@@ -4,11 +4,12 @@
 #include <iostream>
 #include <boost/asio.hpp>
 
-void session::send_message(const std::string& data, std::function<void(const boost::system::error_code& err, std::size_t bytes_transferred)> callback) {
+void session::send_message(std::string data, std::function<void(const boost::system::error_code& err, std::size_t bytes_transferred)> callback) {
 	using boost::asio::buffer;
 
+	data += "\r\n";
 	bytes_transferred_ = boost::asio::write(socket_, buffer(data, data.size()), err_);
-	last_send_ = std::chrono::system_clock::now();
+	last_send_ = std::chrono::steady_clock::now();
 	auto self = shared_from_this();
 	ios_.post([self, callback]() { callback(self->err_, self->bytes_transferred_); });
 }
@@ -17,7 +18,6 @@ neg_server::neg_server(boost::asio::io_service& ios, short port, const std::stri
 	: ios_(ios)
 	, acceptor_(ios, tcp::endpoint(tcp::v4(), port))
 	, data_loader_(file_name)
-	, timer_(ios)
 {
 	auto new_ses = std::make_shared<session>(ios);
 	acceptor_.async_accept(new_ses->get_socket(),
@@ -78,7 +78,7 @@ void neg_server::on_transmition(std::shared_ptr<session> ses, std::size_t order)
 	std::chrono::milliseconds lapse(0);
 	if (order < data_loader_.size()) {
 		data = data_loader_.get_line(order).line_;
-		if (order + 1 <= data_loader_.size()) {
+		if (order + 1 < data_loader_.size()) {
 			lapse = data_loader_.get_line(order + 1).timestamp_ - data_loader_.get_line(order).timestamp_;
 		}
 	}
@@ -91,10 +91,10 @@ void neg_server::on_transmition(std::shared_ptr<session> ses, std::size_t order)
 		[ses, order, self, lapse](const boost::system::error_code& err, std::size_t bytes_transferred) {
 			if (!err) {
 				if (lapse.count() > 0) {
-					auto lapse_now = std::chrono::system_clock::now() - ses->get_last_send() + lapse;
+					auto lapse_now = std::chrono::steady_clock::now() - ses->get_last_send() + lapse;
 					boost::posix_time::milliseconds wait_for(lapse_now.count());
-					self->timer_.expires_from_now(boost::posix_time::seconds(1));
-					self->timer_.async_wait(
+					ses->timer_.expires_from_now(wait_for);
+					ses->timer_.async_wait(
 						[ses, order, self](const boost::system::error_code& err) {
 							if (!err) {
 								self->on_transmition(ses, order + 1);

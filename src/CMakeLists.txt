@@ -11,7 +11,7 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF) 
 
-find_package( Boost 1.48 REQUIRED COMPONENTS system thread )
+find_package( Boost 1.66 REQUIRED COMPONENTS system thread )
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
@@ -19,4 +19,9 @@ add_executable (neg_file_server market_data.cpp
                                 neg_server.cpp
                                 server.cpp)
 
+target_link_libraries(neg_file_server ${Boost_LIBRARIES})
+
 add_executable (client_test client.cpp)
+
+target_link_libraries(client_test ${Boost_LIBRARIES})
+

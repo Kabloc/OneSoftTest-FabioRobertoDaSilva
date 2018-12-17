@@ -3,6 +3,7 @@
 #include <vector>
 #include <exception>
 #include <chrono>
+#include <string>
 
 namespace market_data {
 
@@ -21,7 +22,7 @@ namespace market_data {
 
 	private:
 		void process_line(const std::string& line);
-		std::chrono::milliseconds loader::string_to_milliseconds(const std::string& time);
+		std::chrono::milliseconds string_to_milliseconds(const std::string& time);
 
 		std::string file_name_;
 		std::vector<market_line> data_;

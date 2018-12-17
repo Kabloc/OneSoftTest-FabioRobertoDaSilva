@@ -10,27 +10,29 @@ public:
 	session(boost::asio::io_service &ios) 
 		: ios_(ios)
 		, socket_(ios) 
+		, timer_(ios)
 	{}
 
 	~session() {
 		std::cout << "session closed" << std::endl;
 	}
 
-	void send_message(const std::string& data, std::function<void(const boost::system::error_code& err, std::size_t bytes_transferred)> callback);
+	void send_message(std::string data, std::function<void(const boost::system::error_code& err, std::size_t bytes_transferred)> callback);
 
 	tcp::socket& get_socket() 
 	{ return socket_; }
 
-	std::chrono::time_point<std::chrono::system_clock>& get_last_send()
+	std::chrono::time_point<std::chrono::steady_clock>& get_last_send()
 	{ return last_send_; }
+
+	boost::asio::deadline_timer timer_;
 
 private:
 	tcp::socket socket_;
 	boost::asio::io_service &ios_;
 	boost::system::error_code err_;
 	size_t bytes_transferred_;
-	std::chrono::time_point<std::chrono::system_clock> last_send_;
-
+	std::chrono::time_point<std::chrono::steady_clock> last_send_;
 };
 
 class neg_server : public std::enable_shared_from_this<neg_server> {
@@ -45,6 +47,5 @@ private:
 	boost::asio::io_service& ios_;
 	tcp::acceptor acceptor_;
 	market_data::loader data_loader_;
-	boost::asio::deadline_timer timer_;
 };
 
