@@ -1,4 +1,4 @@
-include_directories ( ${neg_file_server_SOURCE_DIR}/include/ )
+include_directories ( ${opensoft_test_SOURCE_DIR}/include/ )
 
 if( WIN32 )
    set( BOOST_ROOT "C:/Boost" )
@@ -11,9 +11,12 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)  
 set(Boost_USE_STATIC_RUNTIME OFF) 
 
-find_package( Boost 1.48 REQUIRED COMPONENTS system filesystem iostreams timer chrono date_time thread )
+find_package( Boost 1.48 REQUIRED COMPONENTS system thread )
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
 add_executable (neg_file_server market_data.cpp
-                                main.cpp)
+                                neg_server.cpp
+                                server.cpp)
+
+add_executable (client_test client.cpp)
