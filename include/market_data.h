@@ -1,5 +1,4 @@
 #pragma once
-
 #include <vector>
 #include <exception>
 #include <chrono>
@@ -7,16 +6,16 @@
 
 namespace market_data {
 
-	typedef struct {
-		int trade_id;
+	struct trade_line {
+		int trade_id_;
 		std::chrono::milliseconds timestamp_;
 		std::string line_;
-	} market_line;
+	};
 
 	class loader {
 	public:
 		loader(const std::string& file_name);
-		market_line get_line(std::size_t line_number) const;
+		trade_line get_line(std::size_t line_number) const;
 		std::string get_header() const;
 		std::string get_trailer() const;
 		std::size_t size() const;
@@ -26,6 +25,6 @@ namespace market_data {
 		std::chrono::milliseconds string_to_milliseconds(const std::string& time);
 
 		std::string file_name_;
-		std::vector<market_line> data_;
+		std::vector<trade_line> data_;
 	};
 }
