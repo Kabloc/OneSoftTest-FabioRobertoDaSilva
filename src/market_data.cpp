@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 #include <iomanip>
 #include <memory>
 
@@ -22,6 +23,12 @@ loader::loader(const std::string& file_name)
 	if (is.bad()) {
 		throw std::runtime_error("error while reading file");
 	}
+
+	std::sort(data_.begin(), data_.end(),
+		[](const market_line& la, const market_line& lb)->bool {
+			return la.trade_id < lb.trade_id;
+		}
+	);
 }
 
 market_line loader::get_line(std::size_t line_number) const {
@@ -63,10 +70,15 @@ void loader::process_line(const std::string& line) {
 	if (line.size() != 237) {
 		throw std::runtime_error("wrong line size");
 	}
-	market_line mkt_line;
-	mkt_line.line_ = line;
-	mkt_line.timestamp_ = string_to_milliseconds(line.substr(113, 12));
-	data_.push_back(mkt_line);
+
+	data_.emplace_back(
+		market_line
+		{
+			std::atoi(line.substr(62, 10).c_str()),
+			string_to_milliseconds(line.substr(113, 12)),
+			line 
+		}
+	);
 }
 
 std::chrono::milliseconds loader::string_to_milliseconds(const std::string& time) {

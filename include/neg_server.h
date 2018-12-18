@@ -8,8 +8,7 @@ using boost::asio::ip::tcp;
 class session : public std::enable_shared_from_this<session> {
 public:
 	session(boost::asio::io_service &ios) 
-		: ios_(ios)
-		, socket_(ios) 
+		: socket_(ios) 
 		, timer_(ios)
 	{}
 
@@ -17,7 +16,8 @@ public:
 		std::cout << "session closed" << std::endl;
 	}
 
-	void send_message(std::string data, std::function<void(const boost::system::error_code& err, std::size_t bytes_transferred)> callback);
+	void send_message(const std::string& data, std::function<void(const boost::system::error_code& err)> callback);
+	void send_message(const std::string& data, const std::chrono::milliseconds& lapse, std::function<void(const boost::system::error_code& err)> callback);
 
 	tcp::socket& get_socket() 
 	{ return socket_; }
@@ -25,13 +25,10 @@ public:
 	std::chrono::time_point<std::chrono::steady_clock>& get_last_send()
 	{ return last_send_; }
 
-	boost::asio::deadline_timer timer_;
-
 private:
+	std::string data_;
 	tcp::socket socket_;
-	boost::asio::io_service &ios_;
-	boost::system::error_code err_;
-	size_t bytes_transferred_;
+	boost::asio::deadline_timer timer_;
 	std::chrono::time_point<std::chrono::steady_clock> last_send_;
 };
 
@@ -44,8 +41,8 @@ private:
 	void start_transmition(std::shared_ptr<session> ses);
 	void on_transmition(std::shared_ptr<session> ses, std::size_t order);
 
-	boost::asio::io_service& ios_;
 	tcp::acceptor acceptor_;
+	boost::asio::io_service& ios_;
 	market_data::loader data_loader_;
 };
 

@@ -8,8 +8,9 @@
 namespace market_data {
 
 	typedef struct {
-		std::string line_;
+		int trade_id;
 		std::chrono::milliseconds timestamp_;
+		std::string line_;
 	} market_line;
 
 	class loader {

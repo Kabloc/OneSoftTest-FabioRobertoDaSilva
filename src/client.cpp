@@ -7,7 +7,6 @@ using boost::asio::ip::tcp;
 
 int main(int argc, char* argv[])
 {
-	std::stringstream all;
 	try
 	{
 		if (argc != 3)
@@ -18,22 +17,30 @@ int main(int argc, char* argv[])
 
 		boost::asio::io_context io_context;
 
-		std::string reply;
+		std::string buffer;
 		tcp::socket s(io_context);
 		tcp::resolver resolver(io_context);
+		boost::system::error_code err;
 		boost::asio::connect(s, resolver.resolve(argv[1], argv[2]));
 
 		while (1) {
-			size_t reply_length = boost::asio::read_until(s,
-				boost::asio::dynamic_buffer(reply), "\r\n");
-			std::cout << reply << std::endl;
-			reply.clear();
+			boost::asio::read_until(s, boost::asio::dynamic_buffer(buffer), "\r\n", err);
+
+			if (err)
+				break;
+
+			size_t pos = buffer.find("\r\n");
+			if (pos == std::string::npos) {
+				continue;
+			}
+			std::string received = buffer.substr(0, pos);
+			std::cout << received << std::endl;
+			buffer.erase(0, pos+2);
 		}
 	}
 	catch (std::exception& e)
 	{
 		std::cerr << "Exception: " << e.what() << std::endl;
 	}
-	std::cout << all.str();
 	return 0;
 }
